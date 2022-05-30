@@ -161,14 +161,67 @@ class TodoList {
         this.ulTaskDone.children[1].remove();
     }
 
-    init() {
-        this.getTaskObject();
-        if (this.tasksListFromLocalStorage == null) {
-            this.buildDefualtTaskList();
-        } else {
-            this.buildTasksList();
-            this.cleanUp();
+    buildTasksListFromAPI(item) {
+        let task = '';
+        this.ulTaskDone = this.card.querySelector('.taskDone');
+        this.ulTaskDone.innerHTML = "";
+        this.ulTask = this.card.querySelector('.task');
+        this.ulTask.innerHTML = "";
+        this.createEmptyHideTask();
+        this.createEmptyHideTaskDone();
+
+        let tasksArray = item;
+
+        for (const v of tasksArray) {
+            let value = v.title;
+            let status = v.completed;
+            if (status == false) {
+                this.createEmptyTask();
+                this.ulTask = this.card.querySelector('.task');
+                this.ulTask.lastElementChild.children[1].value = value;
+            } else {
+                this.createEmptyTaskDone();
+                this.ulTaskDone = this.card.querySelector('.taskDone');
+                this.ulTaskDone.lastElementChild.children[1].value = value;
+            }
+
         }
+    }
+
+    getObjectFromServer() {
+        const request = new XMLHttpRequest();
+        let arrayObjectFromAPI = [];
+
+        request.addEventListener('readystatechange', () => {
+
+            if ((request.readyState === 4) && (request.status === 200)) {
+                const data = JSON.parse(request.responseText);
+                data.forEach(item => {
+                    if (item.userId === 1) {
+                        arrayObjectFromAPI.push(item);
+                    }
+                    this.buildTasksListFromAPI(arrayObjectFromAPI);
+                })
+            }
+        });
+
+        request.open('GET', 'https://jsonplaceholder.typicode.com/todos');
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send();
+
+        console.dir(request);
+    }
+
+    init() {
+        this.getObjectFromServer();
+
+        // this.getTaskObject();
+        // if (this.tasksListFromLocalStorage == null) {
+        //     this.buildDefualtTaskList();
+        // } else {
+        //     this.buildTasksList();
+        //     this.cleanUp();
+        // }
 
         this.toTaskDone();
         this.deleteTask();
